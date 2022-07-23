@@ -13,8 +13,8 @@ struct SheetView: View {
     var body: some View {
         GeometryReader { geometry in
             NavigationView {
-                VStack(spacing: 40) {
-                    VStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 40) {
+                    VStack(alignment: .leading, spacing: 16) {
                         Image("Coingecko Logo")
                             .resizable()
                         .frame(width: 64, height: 64, alignment: .center)
@@ -27,7 +27,7 @@ struct SheetView: View {
                     .frame(maxWidth: .infinity)
                     .background(Color(.systemGray6))
                     .cornerRadius(16)
-                    VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 16) {
                         AsyncImage(url: URL(string: "https://pbs.twimg.com/profile_images/1541970127981203456/vlhm3pgf_400x400.png")) { image in
                             image.resizable().clipShape(Circle())
                         } placeholder: {
