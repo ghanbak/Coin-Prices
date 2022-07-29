@@ -63,5 +63,5 @@ enum Currency: String, Codable {
     case usd = "usd"
 }
 
-typealias TaskEntry = [WelcomeElement]
+typealias Coins = [WelcomeElement]
 

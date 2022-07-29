@@ -446,4 +446,4 @@ class JSONAny: Codable {
 }
 
 
-typealias CoinDetails = [Welcome]
+typealias CoinData = [Welcome]
