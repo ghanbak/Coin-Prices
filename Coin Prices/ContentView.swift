@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var results = TaskEntry()
+    @State var results = Coins()
     @State var showSheetView = false
+    @State private var path = NavigationPath()
       
     var body: some View {
-        NavigationView {
+        NavigationStack(path: $path) {
             List(results, id: \.id) { item in
-                NavigationLink(destination: CoinView()) {
+                NavigationLink(value: item) {
                     HStack {
                         AsyncImage(url: URL(string: item.image)) { image in
                             image.resizable()
@@ -27,7 +28,6 @@ struct ContentView: View {
                             Text(item.name)
                                 .font(.system(size: 14, weight: .bold, design: .rounded))
                                 .foregroundColor(Color.primary)
-                            Spacer()
                             Text(item.symbol)
                                 .font(.system(size: 12, weight: .regular, design: .rounded))
                                 .textCase(.uppercase)
@@ -35,27 +35,22 @@ struct ContentView: View {
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
-                            Text( item.currentPrice, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                            Text( item.currentPrice, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                                 .font(.system(size: 14, weight: .bold, design: .rounded))
                                 .foregroundColor(Color.primary)
-                            Spacer()
-                            Text("\(String(format: "%.4f%%", item.priceChangePercentage24H))")
+                            Text("\(String(format: "%.4f%%", item.priceChangePercentage24H!))")
                                 .font(.system(size: 12, weight: .regular, design: .rounded))
-                                .foregroundColor(item.priceChangePercentage24H.isLess(than: 0) ? Color("Pink") : Color("Green"))
+                                .foregroundColor(item.priceChangePercentage24H!.isLess(than: 0) ? Color("Pink") : Color("Green"))
                         }
                     }
-                    .padding(EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0))
+                    .padding(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                 }
                 .listRowSeparatorTint(Color(.systemGray5))
             }
-//            .onAppear(perform: downloadMarkets)
-            .onAppear(perform: loadData)
-            .refreshable {
-                do {
-                    loadData()
-                }
-            }
             .navigationTitle("Prices")
+            .navigationDestination(for: Coin.self) {item in
+                DetailView(passedValue: item)
+            }
             .navigationBarItems(trailing:
                 Button(action: {
                     self.showSheetView.toggle()
@@ -65,6 +60,12 @@ struct ContentView: View {
                         .foregroundColor(Color(.systemGray3))
                 }
             )
+            .onAppear(perform: loadData)
+            .refreshable {
+                do {
+                    loadData()
+                }
+            }
         }.sheet(isPresented: $showSheetView) {
             SheetView(showSheetView: self.$showSheetView)
         }
@@ -72,14 +73,14 @@ struct ContentView: View {
     
   
     func loadData() {
-        guard let url = URL(string: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=240&page=1&sparkline=false") else {
+        guard let url = URL(string: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=240&page=1&sparkline=true") else {
             fatalError("Missing URL")
         }
         let request = URLRequest(url: url)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
-                if let response = try? JSONDecoder().decode(TaskEntry.self, from: data) {
+                if let response = try? JSONDecoder().decode(Coins.self, from: data) {
                     DispatchQueue.main.async {
                         self.results = response
                     }
@@ -88,20 +89,6 @@ struct ContentView: View {
             }
         }.resume()
     }
-    
-//    @Sendable func downloadMarkets() async {
-//        do {
-//            let url = URL(string: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=240&page=1&sparkline=false")!
-//            let (data, _) = try await URLSession.shared.data(from: url)
-//
-//            let decoder = JSONDecoder()
-//            decoder.dateDecodingStrategy = .iso8601
-//
-//            coins = try decoder.decode([TaskEntry].self, from: data)
-//        } catch {
-//            fatalError("Whoops! That didn't work.")
-//        }
-//    }
 }
 
 struct ContentView_Previews: PreviewProvider {
